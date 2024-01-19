@@ -14,11 +14,11 @@ app.use(express.json());
 
 // routes
 app.use('/api/v1/auth', authRouter)
-app.use('/api/v1/jobs', jobRouter)
+app.use('/api/v1/jobs',jobRouter)// we can also use the protect middleware here to protect all jobs route
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
-
+ 
 module.exports = app
 
 
