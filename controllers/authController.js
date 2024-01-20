@@ -16,12 +16,12 @@ const register = async (req, res, next) => {
 }
 
 const login = async (req, res, next) => {
+   try {
     const {email, password} = req.body
     if (!email || !password) {
         throw new BadRequestError('Please provide email and password')
     }
-    const user = User.findOne({email})
-    const token = user.generateToken()
+    const user = await User.findOne({email})
     
     if (!user) {
         throw new UnauthenticatedError('Invalid credentials')
@@ -31,10 +31,17 @@ const login = async (req, res, next) => {
     if (!isPasswordCorrect) {
         throw new UnauthenticatedError('Password is incorrect')
     }
+    const token = user.generateToken()
+
     res.status(StatusCodes.OK).json({
         token,
-        user : {name: user.name}
+        user : {name: user.name} 
     })
+   } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({
+        message:"Failed"
+    })
+   }
 
 }
 

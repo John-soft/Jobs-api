@@ -33,11 +33,35 @@ const getJob = async (req, res, next) => {
 }
 
 const updateJob = async (req, res, next) => {
-    
+    const user = req.user
+    const jobId = req.params.id
+    const {company, position} = req.body
+    if (company === '' || position === '') {
+        throw new BadRequestError('Company name and position must be provided')
+    }
+    const updatedJob = await Job.findByIdAndUpdate({_id: jobId, createdBy: user.id},req.body, {new: true, runValidators: true})
+
+    if (!updatedJob) {
+        throw new NotFoundError(`Job with the ID ${jobId} does not exist`)
+    }
+    res.status(StatusCodes.OK).json({
+        updatedJob
+        
+    })
+
 }
 
 const deleteJob = async (req, res, next) => {
-    
+    const user = req.user
+    const jobId = req.params.id
+    const deletedJob = await Job.findByIdAndDelete({_id: jobId, createdBy: user.id})
+
+    if (!deletedJob) {
+        throw new NotFoundError(`Job with the ID ${jobId} does not exist`)
+    }
+    res.status(StatusCodes.OK).send('Data deleted')
+
+
 }
 
 module.exports = {
