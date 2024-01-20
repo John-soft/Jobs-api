@@ -24,6 +24,7 @@ const userSchema = new Schema({
         type: String,
         required: [true, 'Please provide password'],
         minlength: 6,
+        select: false
     }
 })
 
@@ -33,7 +34,7 @@ userSchema.pre('save', function(next){
 })
 
 userSchema.methods.generateToken = function(){
-    return  jwt.sign({id: this._id, name: this.name}, process.env.SECRET_JWT, {
+    return jwt.sign({id: this._id, name: this.name}, process.env.SECRET_JWT, {
         expiresIn: process.env.TOKEN_EXPIRES
     })
 

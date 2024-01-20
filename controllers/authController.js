@@ -2,7 +2,6 @@ const { BadRequestError , UnauthenticatedError} = require('../errors')
 const User = require('../models/User')
 const {StatusCodes} = require('http-status-codes')
 const asyncWrapper = require('../utils/asyncWrapper')
-const util = require('util')
 const jwt = require('jsonwebtoken')
 
 const register = async (req, res, next) => {
@@ -21,7 +20,7 @@ const login = async (req, res, next) => {
     if (!email || !password) {
         throw new BadRequestError('Please provide email and password')
     }
-    const user = User.findOne({email}).select('+password')
+    const user = User.findOne({email})
     const token = user.generateToken()
     
     if (!user) {
@@ -34,12 +33,12 @@ const login = async (req, res, next) => {
     }
     res.status(StatusCodes.OK).json({
         token,
-        user
+        user : {name: user.name}
     })
 
 }
 
-const protect = asyncWrapper(async (req, res, next) => {
+const protect = async (req, res, next) => {
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer')) {
@@ -47,18 +46,29 @@ const protect = asyncWrapper(async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1]
+    if (!token) {
+        throw new UnauthenticatedError('Token is missing')
+    }
 
-    const decodedToken = util.promisify(jwt.verify)(token, process.env.SECRET_JWT)
+    try {
+        const decodedToken = jwt.verify(token, process.env.SECRET_JWT)
+            //Attach user to the job route
+        req.user = {id: decodedToken.id, name: decodedToken.name}
+    next()
+
+    } catch (error) {
+        throw new UnauthenticatedError('Authentication Invalid')
+    }
+
 
     //It can also be implemented this way to decode the user id
     /*const user = User.findById(decodedToken.id).select('-password)
     req.user = user*/
 
 
-    //Attach user to the job route
-    req.user = {id: decodedToken.id, name: decodedToken.name}
-    next()
-    })
+
+    
+    }
 
 
 
